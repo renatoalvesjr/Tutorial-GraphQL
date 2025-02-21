@@ -22,7 +22,9 @@ export const Link = objectType({
             .findUnique({where: { id: parent.id}})
             .voters()
       }
-    })
+    });
+
+
   },
 });
 
@@ -31,8 +33,18 @@ export const LinkQuery = extendType({
   definition(t) {
     t.nonNull.list.nonNull.field("feed", {
       type: "Link",
+      args: {
+        filter: stringArg(),
+      },
       resolve(parent, args, context, info) {
-        return context.prisma.link.findMany();
+        const where = args.filter
+            ? {
+                OR: [
+                  {description: {contains: args.filter}},
+                  {url: {contains: args.filter}},
+                ]
+            } : {};
+        return context.prisma.link.findMany({where});
       },
     });
   },
